@@ -48,13 +48,13 @@ lookup_plugins = ~/.ansible/plugins/lookup_plugins/:/usr/share/ansible_plugins/l
 
 ### Lookup Plugins
 
-The `st2` plugin reads data from the StackStorm (st2) key/value datastore
+The `st2kv` plugin reads data from the StackStorm (st2) key/value datastore
 from within ansible. 
 
 ``` yaml
   - name: retrieving a KV from StackSTorm
     debug:
-      msg: "{{ lookup('st2', 'system.my_key') }}"
+      msg: "{{ lookup('st2kv', 'system.my_key') }}"
 ```
 
 In order for this to work ansible will need to authenticate with StackStorm.
@@ -79,7 +79,7 @@ using the parameter `api_key`:
 ``` yaml
   - name: retrieving a KV from a remote host using an API key
     debug:
-      msg: "{{ lookup('st2', 'system.my_key', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
+      msg: "{{ lookup('st2kv', 'system.my_key', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
 ```
 
 Sometimes it's conveient to utilize environment variables to store information, 
@@ -93,7 +93,7 @@ in the lookup function:
   - name: retrieving a KV from a remote host using an API key (assumes ST2_API_KEY 
         environment variable is set)
     debug:
-      msg: "{{ lookup('st2', 'system.my_key', hostname='stackstorm.domain.tld') }}"
+      msg: "{{ lookup('st2kv', 'system.my_key', hostname='stackstorm.domain.tld') }}"
 ```
 
 #### Auth Token
@@ -105,7 +105,7 @@ paramter:
 ``` yaml
   - name: retrieving a KV from a remote host using an Auth token
     debug:
-      msg: "{{ lookup('st2', 'system.my_key', hostname='stackstorm.domain.tld', auth_token="ysfd456") }}"
+      msg: "{{ lookup('st2kv', 'system.my_key', hostname='stackstorm.domain.tld', auth_token="ysfd456") }}"
 ```
 
 For utilizing environment variables you can either set `ST2_AUTH_TOKEN` or 
@@ -126,15 +126,15 @@ lookup can be as simple as:
 ``` yaml
   - name: retrieving a KV from StackSTorm (when called from StackStorm)
     debug:
-      msg: "{{ lookup('st2', 'system.my_key') }}"
+      msg: "{{ lookup('st2kv', 'system.my_key') }}"
 ```
 
 #### Reference
 
-A complete reference documentation for the `st2` lookup plugin:
+A complete reference documentation for the `st2kv` lookup plugin:
 
 ```yaml
-lookup: st2
+lookup: st2kv
 version_added: N/A
 short_description: Grab values from the StackStorm (st2) key/value datastore
 description:

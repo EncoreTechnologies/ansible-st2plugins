@@ -3,7 +3,7 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 DOCUMENTATION = """
-    lookup: st2
+    lookup: st2kv
     version_added: N/A
     short_description: Grab values from the StackStorm (st2) key/value datastore
     description:
@@ -68,29 +68,28 @@ DOCUMENTATION = """
 
 EXAMPLES = """
   - debug: msg='key contains {{item}}'
-    with_st2:
+    with_st2kv:
       - 'system.key_to_retrieve'
-      - 'st2kv.system.key_to_retrieve'
 
   - name: retrieving a KV when ansible is called from a StackStorm action
     debug:
-      msg: "{{ lookup('st2', 'system.some_key') }}"
+      msg: "{{ lookup('st2kv', 'system.some_key') }}"
 
   - name: retrieving a KV from a remote host using an API key
     debug:
-      msg: "{{ lookup('st2', 'system.my_key', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
+      msg: "{{ lookup('st2kv', 'system.my_key', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
 
   - name: retrieving a KV from a remote host using an Auth token
     debug:
-      msg: "{{ lookup('st2', 'system.my_key', hostname='stackstorm.domain.tld', auth_token="ysfd456") }}"
+      msg: "{{ lookup('st2kv', 'system.my_key', hostname='stackstorm.domain.tld', auth_token="ysfd456") }}"
 
   - name: retrieving a KV in user scope
     debug:
-      msg: "{{ lookup('st2', 'user.my_key', user='dave', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
+      msg: "{{ lookup('st2kv', 'user.my_key', user='dave', hostname='stackstorm.domain.tld', api_key="xyz123") }}"
 
   - name: retrieving a KV using a custom API url
     debug:
-      msg: "{{ lookup('st2', 'system.different_key', api_url='http://st2.domain.tld/st2/api, api_key="xyz123") }}"
+      msg: "{{ lookup('st2kv', 'system.different_key', api_url='http://st2.domain.tld/st2/api, api_key="xyz123") }}"
 """
 
 RETURN = """
@@ -116,7 +115,7 @@ class LookupModule(LookupBase):
 
     def run(self, terms, variables=None, **kwargs):
         if not HAS_REQUESTS:
-            raise AnsibleError('"requests" module is required for st2_kv lookup. see http://docs.python-requests.org/en/master/user/install/')
+            raise AnsibleError('"requests" module is required for st2kv lookup. see http://docs.python-requests.org/en/master/user/install/')
 
         values = []
         try:
@@ -195,7 +194,6 @@ class LookupModule(LookupBase):
         The valid formats for the string is:
           key        ('system' scope assumed)
           scope.key
-          st2kv.scope.key
 
         The parts of the string are delimited by '.'.
         If a string is given with no '.' then the given string will be the key
@@ -214,10 +212,6 @@ class LookupModule(LookupBase):
           term: system.my.coolkey
             scope: system
             key: my.coolkey
-
-          term: st2kv.user.some.fancy_key_name.fun
-            scope: user
-            key: some.fancy_key_name.fun
         """
         # is the term None or empty string?
         if not term:
@@ -226,14 +220,12 @@ class LookupModule(LookupBase):
         # break apart the term into parts using '.' as the delimiter
         parts = term.split('.')
         if len(parts) == 1:
+            # the term doesn't contain a '.' meaning there is only one part
+            # then return this single part as the key in the default "system"
+            # scope
             return ("system", parts[0])
-
-        # remove "st2kv" if it's the first part
-        if parts[0] == "st2kv":
-            parts.pop(0)
-
-        # does the term contain the required 2 parts (scope and key)?
-        if len(parts) < 2:
+        elif len(parts) < 2:
+            # does the term contain the required 2 parts (scope and key)?
             raise AnsibleError("Error - The key doesn't contain a scope and a"
                                " key delimited by a '.' (example: system.key)."
                                " Error in key: {}".format(term))
